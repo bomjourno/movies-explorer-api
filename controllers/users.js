@@ -48,6 +48,8 @@ module.exports.login = (req, res, next) => {
       res.cookie('jwt', token, {
         maxAge: 3600000,
         httpOnly: true,
+        secure: true,
+        sameSite: 'None',
       });
       res.send({ token });
     })
@@ -55,6 +57,12 @@ module.exports.login = (req, res, next) => {
 };
 
 module.exports.signOut = (req, res) => {
+  res.cookie('jwt', '', {
+    maxAge: 0,
+    httpOnly: true,
+    secure: true,
+    sameSite: 'None',
+  });
   res.clearCookie('jwt');
   res.send({ message: 'Выполнен выход из аккаунта' });
 };
