@@ -5,6 +5,8 @@ const User = require('../models/user');
 const NotFound = require('../errors/NotFound');
 const Conflict = require('../errors/Conflict');
 
+require('dotenv').config();
+
 const { JWT_SECRET = 'dev-secret' } = process.env;
 
 module.exports.createUser = (req, res, next) => {
