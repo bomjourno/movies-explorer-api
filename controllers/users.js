@@ -12,12 +12,7 @@ const { JWT_SECRET = 'dev-secret' } = process.env;
 module.exports.createUser = (req, res, next) => {
   const { name, email, password } = req.body;
 
-  const createUser = (hash) => User.create({
-    name,
-    email,
-    password: hash,
-  });
-
+  const createUser = (hash) => User.create({ name, email, password: hash });
   bcrypt
     .hash(password, 10)
     .then((hash) => createUser(hash))
@@ -81,21 +76,23 @@ module.exports.getUser = (req, res, next) => {
 module.exports.patchUser = (req, res, next) => {
   const { name, email } = req.body;
 
-  const updatedUserInfo = () => User.findByIdAndUpdate(
+  User.findByIdAndUpdate(
     req.user._id,
     { name, email },
     { runValidators: true, new: true },
-  );
-
-  User.find({ email })
-    .then(([user]) => {
-      if (user && user._id !== req.user._id) {
-        throw new Conflict('Пользователь с таким email уже зарегестрирован');
+  )
+    .then((user) => {
+      if (!user) {
+        throw new NotFound('Такого пользователя не существует');
+      } else {
+        res.status(200).send({ email: user.email, name: user.name });
       }
-      return updatedUserInfo();
     })
-    .then(() => {
-      res.send({ name, email });
-    })
-    .catch(next);
+    .catch((err) => {
+      if (err.code === 11000) {
+        next(new Conflict('Пользователь с таким email уже зарегестрирован'));
+      } else {
+        next(err);
+      }
+    });
 };
